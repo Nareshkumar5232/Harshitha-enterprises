@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useAdminData } from './AdminDataContext'
+import { calculateTotals } from '../utils/pricing'
 
 const CartContext = createContext(null)
 
@@ -33,15 +35,6 @@ function normalizeItem(item) {
   }
 }
 
-function buildTotals(items) {
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const gst = Math.round(subtotal * 0.18)
-  const delivery = subtotal === 0 ? 0 : subtotal >= 25000 ? 0 : 299
-  const grandTotal = subtotal + gst + delivery
-
-  return { subtotal, gst, delivery, grandTotal }
-}
-
 function createOrderId() {
   const suffix = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `SH-${Date.now().toString().slice(-6)}-${suffix}`
@@ -59,6 +52,7 @@ function sameItemSnapshot(leftItems = [], rightItems = []) {
 }
 
 export function CartProvider({ children }) {
+  const { settings, addOrder } = useAdminData()
   const [cartItems, setCartItems] = useState(() => readStorage(CART_STORAGE_KEY, []))
   const [checkoutDraft, setCheckoutDraft] = useState(() => readStorage(CHECKOUT_STORAGE_KEY, null))
   const [lastOrder, setLastOrder] = useState(() => readStorage(ORDER_STORAGE_KEY, null))
@@ -191,30 +185,33 @@ export function CartProvider({ children }) {
       return null
     }
 
-    const totals = buildTotals(items)
+    const totals = calculateTotals(items, settings)
     const order = {
       id: createOrderId(),
       customer,
       paymentMethod,
+      status: 'Pending',
       items,
       totals,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       source: checkoutDraft?.source || 'direct'
     }
 
-    setLastOrder(order)
+    const storedOrder = addOrder(order)
+    setLastOrder(storedOrder)
     clearCheckoutDraft()
 
-    if (order.source === 'cart') {
+    if (storedOrder.source === 'cart') {
       clearCart()
     }
 
-    return order
+    return storedOrder
   }
 
   const checkoutItems = checkoutDraft?.items?.length ? checkoutDraft.items : cartItems
-  const cartTotals = useMemo(() => buildTotals(cartItems), [cartItems])
-  const checkoutTotals = useMemo(() => buildTotals(checkoutItems), [checkoutItems])
+  const cartTotals = useMemo(() => calculateTotals(cartItems, settings), [cartItems, settings])
+  const checkoutTotals = useMemo(() => calculateTotals(checkoutItems, settings), [checkoutItems, settings])
   const cartCount = useMemo(() => cartItems.reduce((count, item) => count + item.quantity, 0), [cartItems])
 
   const value = {

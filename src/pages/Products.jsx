@@ -2,7 +2,8 @@ import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import Loading from '../components/Loading'
-import { categories, products } from '../data/catalog'
+import { categories } from '../data/catalog'
+import { useAdminData } from '../context/AdminDataContext'
 
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
@@ -14,6 +15,7 @@ const sortOptions = [
 export default function Products(){
   const [ready, setReady] = React.useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
+  const { products } = useAdminData()
   const [search, setSearch] = React.useState(searchParams.get('q') || '')
   const [category, setCategory] = React.useState(searchParams.get('category') || 'all')
   const [sort, setSort] = React.useState(searchParams.get('sort') || 'featured')

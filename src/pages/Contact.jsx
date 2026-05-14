@@ -1,8 +1,27 @@
 import React from 'react'
+import { useAdminData } from '../context/AdminDataContext'
 
 export default function Contact(){
-  const address = '3rd Floor, Flat No: C3, 7A & 7B, 467/2, Saraswathi Nagar Main Road, Thirumullaivoyal, Chennai 600062'
+  const { addMessage, settings } = useAdminData()
+  const address = settings.address || '3rd Floor, Flat No: C3, 7A & 7B, 467/2, Saraswathi Nagar Main Road, Thirumullaivoyal, Chennai 600062'
   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+  const [success, setSuccess] = React.useState('')
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    addMessage({
+      customerName: String(formData.get('name') || ''),
+      email: String(formData.get('email') || ''),
+      phone: String(formData.get('phone') || ''),
+      subject: String(formData.get('subject') || 'General enquiry'),
+      message: String(formData.get('message') || '')
+    })
+
+    event.currentTarget.reset()
+    setSuccess('Your message has been sent successfully.')
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -15,21 +34,21 @@ export default function Contact(){
           <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">Use the direct contact options below instead of an embedded map for a cleaner, more trustworthy experience.</p>
 
           <div className="mt-6 grid gap-4 rounded-[1.75rem] bg-[var(--bg-secondary)]/80 p-5 sm:grid-cols-2">
-            <ContactTile icon="🏢" label="Company" value="Sree Harshitha Enterprises" />
-            <ContactTile icon="📍" label="Address" value="3rd Floor, Flat No: C3, 7A & 7B, 467/2, Saraswathi Nagar Main Road, Thirumullaivoyal, Chennai – 600062" />
-            <ContactTile icon="📞" label="Phone" value="+91 9363706040" />
-            <ContactTile icon="✉️" label="Email" value="care.harshithaenterprises@gmail.com" />
+            <ContactTile icon="🏢" label="Company" value={settings.storeName} />
+            <ContactTile icon="📍" label="Address" value={address} />
+            <ContactTile icon="📞" label="Phone" value={settings.contactPhone} />
+            <ContactTile icon="✉️" label="Email" value={settings.contactEmail} />
             <ContactTile icon="🕒" label="Business hours" value="Mon-Sat, 10:00 AM - 7:00 PM" />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="tel:+919363706040" className="btn-primary rounded-full px-5 py-3 text-sm font-semibold transition">
+            <a href={`tel:${String(settings.contactPhone || '+919363706040').replace(/[^0-9+]/g, '')}`} className="btn-primary rounded-full px-5 py-3 text-sm font-semibold transition">
               Call Now
             </a>
-            <a href="mailto:care.harshithaenterprises@gmail.com" className="btn-secondary rounded-full px-5 py-3 text-sm font-semibold transition">
+            <a href={`mailto:${settings.contactEmail}`} className="btn-secondary rounded-full px-5 py-3 text-sm font-semibold transition">
               Email Us
             </a>
-            <a href="https://wa.me/919363706040" target="_blank" rel="noreferrer" className="rounded-full border border-emerald-300 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-500/15 dark:border-emerald-400/30 dark:text-emerald-300">
+            <a href={`https://wa.me/${String(settings.whatsapp || '+919363706040').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="rounded-full border border-emerald-300 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-500/15 dark:border-emerald-400/30 dark:text-emerald-300">
               Chat on WhatsApp
             </a>
             <a href={directionsUrl} target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-glass)] px-5 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg-secondary)]">
@@ -42,13 +61,15 @@ export default function Contact(){
         <section className="glow-dark theme-card rounded-[2rem] p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/70">Message form</p>
           <h2 className="mt-3 text-3xl font-black text-[var(--text-primary)]">Send a message</h2>
-          <form className="mt-6 space-y-4">
-            <Field label="Name" placeholder="Your name" />
-            <Field label="Email" placeholder="you@example.com" />
-            <Field label="Phone" placeholder="Phone number" />
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            {success ? <p className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300">{success}</p> : null}
+            <Field label="Name" name="name" placeholder="Your name" required />
+            <Field label="Email" name="email" type="email" placeholder="you@example.com" required />
+            <Field label="Phone" name="phone" placeholder="Phone number" required />
+            <Field label="Subject" name="subject" placeholder="How can we help?" required />
             <label className="theme-input block rounded-2xl px-4 py-3">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">Message</span>
-              <textarea placeholder="Tell us about your order or enquiry" className="mt-2 h-32 w-full resize-none border-0 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]" />
+              <textarea name="message" placeholder="Tell us about your order or enquiry" className="mt-2 h-32 w-full resize-none border-0 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]" required />
             </label>
             <button type="submit" className="btn-primary w-full rounded-full px-5 py-4 text-sm font-semibold transition">
               Submit enquiry

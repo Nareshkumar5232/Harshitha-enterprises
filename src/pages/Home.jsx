@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProductCard from '../components/ProductCard'
 import Loading from '../components/Loading'
-import { categories, promotionalBanners, products } from '../data/catalog'
+import { categories, promotionalBanners } from '../data/catalog'
+import { useAdminData } from '../context/AdminDataContext'
 
 export default function Home(){
   const [ready, setReady] = React.useState(false)
+  const { products } = useAdminData()
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const relatedProducts = products.slice(2, 8)
 

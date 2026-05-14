@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useAdminAuth } from '../context/AdminAuthContext'
 
 export default function Login() {
   const [error, setError] = React.useState('')
@@ -8,18 +9,36 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const { login: adminLogin } = useAdminAuth()
 
   const from = location.state?.from || '/account'
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
     setLoading(true)
 
     const formData = new FormData(event.currentTarget)
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    const password = String(formData.get('password') || '')
+
+    // Check if admin credentials
+    if (email === 'admin@gmail.com') {
+      const adminResult = await adminLogin({ email, password })
+      if (adminResult.ok) {
+        navigate('/admin/dashboard', { replace: true })
+        return
+      }
+      // If admin email but wrong password, fall through to show error
+      setError('Invalid credentials')
+      setLoading(false)
+      return
+    }
+
+    // Try customer login
     const result = login({
-      email: String(formData.get('email') || ''),
-      password: String(formData.get('password') || '')
+      email,
+      password
     })
 
     if (!result.ok) {
