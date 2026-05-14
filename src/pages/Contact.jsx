@@ -92,14 +92,14 @@ function Field({ label, ...props }) {
 
 function ContactTile({ icon, label, value }) {
   return (
-    <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-soft)]">
-      <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-cyan)] text-lg text-white shadow-lg">
+    <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] flex flex-col justify-center min-h-32">
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-cyan)] text-xl text-white shadow-lg">
           {icon}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">{label}</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">{value}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--text-primary)] break-words">{value}</p>
         </div>
       </div>
     </div>

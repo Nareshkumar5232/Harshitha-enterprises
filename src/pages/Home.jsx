@@ -140,9 +140,9 @@ export default function Home(){
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-3xl border border-white/60 bg-white/85 p-4 shadow-lg dark:border-white/10 dark:bg-slate-950/70">
+    <div className="flex flex-col justify-between rounded-3xl border border-white/60 bg-white/85 p-5 shadow-lg dark:border-white/10 dark:bg-slate-950/70 min-h-28">
       <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{label}</p>
-      <div className="mt-2 text-lg font-bold text-slate-950 dark:text-white">{value}</div>
+      <div className="text-lg font-bold text-slate-950 dark:text-white">{value}</div>
     </div>
   )
 }
