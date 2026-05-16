@@ -15,9 +15,13 @@ export default function Checkout() {
   const navigate = useNavigate()
   const [paymentMethod, setPaymentMethod] = React.useState('cod')
   const [step, setStep] = React.useState(1)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    setError('')
+    setLoading(true)
 
     const formData = new FormData(event.currentTarget)
     const customer = {
@@ -30,10 +34,28 @@ export default function Checkout() {
       pincode: String(formData.get('pincode') || '')
     }
 
-    const order = placeOrder(customer, paymentMethod)
+    let result = null
 
-    if (order) {
-      navigate('/order-success', { state: { order } })
+    try {
+      result = await placeOrder(customer, paymentMethod)
+    } catch {
+      setError('Unable to complete checkout right now. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+
+    if (!result) {
+      setError('Unable to complete checkout right now. Please try again.')
+      return
+    }
+
+    if (result.paymentRequired) {
+      navigate('/order-success', { state: { order: result.order, payment: result.payment } })
+      return
+    }
+
+    if (result) {
+      navigate('/order-success', { state: { order: result } })
     }
   }
 
@@ -107,8 +129,10 @@ export default function Checkout() {
             Secure payment UI, invoice-ready order summary, and clear delivery information are shown before order placement.
           </div>
 
-          <button type="submit" onClick={() => setStep(3)} className="w-full rounded-full bg-gradient-to-r from-brand-500 to-accent px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:brightness-110">
-            Place order securely
+          {error ? <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-200">{error}</div> : null}
+
+          <button type="submit" onClick={() => setStep(3)} disabled={loading} className="w-full rounded-full bg-gradient-to-r from-brand-500 to-accent px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
+            {loading ? 'Placing order...' : 'Place order securely'}
           </button>
         </section>
 

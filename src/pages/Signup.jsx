@@ -8,7 +8,7 @@ export default function Signup() {
   const navigate = useNavigate()
   const { register } = useAuth()
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -22,7 +22,7 @@ export default function Signup() {
     }
 
     setLoading(true)
-    const result = register({
+    const result = await register({
       name: String(formData.get('name') || ''),
       email: String(formData.get('email') || ''),
       mobile: String(formData.get('mobile') || ''),

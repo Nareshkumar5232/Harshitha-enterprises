@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { categories, products as catalogProducts } from '../data/catalog'
 import { calculateTotals, DEFAULT_PRICING_SETTINGS } from '../utils/pricing'
+import { API_BASE_URL } from '../lib/api'
 
 const ADMIN_DATA_STORAGE_KEY = 'sh-admin-panel-v1'
 
@@ -199,6 +200,37 @@ function normalizeProduct(product) {
   }
 }
 
+function findFallbackProduct(product, index) {
+  return (
+    catalogProducts.find((item) => item.id === product.id || item.name === product.name) ||
+    catalogProducts.find((item) => item.category === product.category) ||
+    catalogProducts[index % catalogProducts.length] ||
+    {}
+  )
+}
+
+function normalizeRemoteProduct(product, index) {
+  const fallback = findFallbackProduct(product, index)
+
+  return normalizeProduct({
+    ...fallback,
+    id: product._id || product.id || fallback.id || createId('prd'),
+    name: product.name || fallback.name,
+    description: product.description || product.Description || fallback.description || '',
+    price: Number(product.price ?? fallback.price ?? 0),
+    category: product.category || fallback.category || 'accessory',
+    stockQuantity: Number(product.stockQuantity ?? product.stock ?? fallback.stockQuantity ?? 0),
+    brand: product.brand || fallback.brand || 'Harshitha',
+    badge: product.badge || fallback.badge || 'Premium',
+    image: product.image || fallback.image || '',
+    gallery: Array.isArray(product.gallery) && product.gallery.length ? product.gallery : (fallback.image ? [fallback.image] : []),
+    featured: product.featured ?? fallback.featured ?? false,
+    latest: product.latest ?? fallback.latest ?? false,
+    active: product.active ?? true,
+    specifications: product.specifications || fallback.specifications || []
+  })
+}
+
 function normalizeOrder(order) {
   const items = Array.isArray(order.items) ? order.items.map((item) => ({ ...item, quantity: Math.max(1, Number(item.quantity || 1)) })) : []
   return {
@@ -241,6 +273,36 @@ function normalizeNotification(notification) {
 export function AdminDataProvider({ children }) {
   const [state, setState] = useState(buildInitialState)
   const [alerts, setAlerts] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/product`)
+        if (!response.ok) {
+          return
+        }
+
+        const remoteProducts = await response.json()
+
+        if (!cancelled && Array.isArray(remoteProducts) && remoteProducts.length) {
+          setState((current) => ({
+            ...current,
+            products: remoteProducts.map((product, index) => normalizeRemoteProduct(product, index))
+          }))
+        }
+      } catch {
+        // Keep the seeded catalog if the deployed backend is unavailable.
+      }
+    }
+
+    loadProducts()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     writeStorage(ADMIN_DATA_STORAGE_KEY, {

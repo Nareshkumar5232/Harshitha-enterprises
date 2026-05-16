@@ -4,7 +4,8 @@ import { useCart } from '../context/CartContext'
 
 const toneStyles = {
   success: 'border-success/40 bg-emerald-500/90 text-white',
-  info: 'border-brand-300/40 bg-slate-900/90 text-white'
+  info: 'border-brand-300/40 bg-slate-900/90 text-white',
+  error: 'border-rose-300/40 bg-rose-600/90 text-white'
 }
 
 export default function ToastStack() {

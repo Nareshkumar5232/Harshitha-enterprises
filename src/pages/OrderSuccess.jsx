@@ -8,6 +8,8 @@ export default function OrderSuccess() {
   const location = useLocation()
   const { lastOrder } = useCart()
   const order = location.state?.order || lastOrder
+  const payment = location.state?.payment || order?.paymentSession
+  const isPaymentPending = Boolean(payment)
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
@@ -21,12 +23,14 @@ export default function OrderSuccess() {
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-400">Order confirmed</p>
         <h1 className="mt-3 text-3xl font-black text-slate-950 dark:text-white sm:text-4xl">Thank you for shopping with Sree Harshitha Enterprises.</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">Your order has been placed successfully. Our team will contact you shortly with confirmation and delivery details.</p>
+        {isPaymentPending ? <p className="mt-3 text-sm font-medium text-amber-600 dark:text-amber-300">Payment session created. Complete payment using the checkout flow to confirm the order.</p> : null}
 
         <div className="mt-8 grid gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 text-left dark:border-white/10 dark:bg-white/5 sm:grid-cols-2">
           <Info label="Order ID" value={order?.id || 'SH-000000-XXXX'} />
           <Info label="Payment method" value={order?.paymentMethod?.toUpperCase?.() || 'COD'} />
           <Info label="Items" value={`${order?.items?.length || 0}`} />
           <Info label="Grand total" value={formatCurrency(order?.totals?.grandTotal || 0)} />
+          {payment ? <Info label="Payment session" value={payment.payment_session_id || payment.paymentSessionId || payment.cf_order_id || payment.cfOrderId || 'Pending'} /> : null}
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

@@ -36,7 +36,7 @@ export default function Login() {
     }
 
     // Try customer login
-    const result = login({
+    const result = await login({
       email,
       password
     })
